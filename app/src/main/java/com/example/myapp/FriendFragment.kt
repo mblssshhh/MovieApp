@@ -1,5 +1,3 @@
-// FriendFragment.kt
-
 package com.example.myapp
 
 import android.content.Context
@@ -37,6 +35,9 @@ class FriendFragment : Fragment(), InvitationListener {
         friendRequestsLayout = view.findViewById(R.id.friend_requests)
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
         apiService = RetrofitClient.getClient().create(ApiService::class.java)
+
+        val webSocketClient = WebSocketClient()
+        webSocketClient.registerInvitationListener(this)
 
         val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val username = sharedPreferences.getString("username", null)
@@ -226,7 +227,7 @@ class FriendFragment : Fragment(), InvitationListener {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     Toast.makeText(requireActivity(), "Friend removed", Toast.LENGTH_SHORT).show()
-                    loadFriends(userId) // Предполагая, что необходимо обновить список друзей после удаления
+                    loadFriends(userId)
                 } else {
                     val errorMessage = "Failed to remove friend: ${response.message()}"
                     Log.e(TAG, errorMessage)
@@ -307,30 +308,17 @@ class FriendFragment : Fragment(), InvitationListener {
     }
 
     override fun onInvitationReceived(senderUsername: String) {
-        showInvitationDialog(senderUsername)
-    }
-
-    private fun sendJoinConfirmationToWebSocket(senderUsername: String) {
-        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val receiverUsername = sharedPreferences.getString("username", null) ?: ""
-        if (receiverUsername.isNotEmpty()) {
-            WebSocketClient.sendJoinConfirmation(senderUsername, receiverUsername)
-        } else {
-            Log.e(TAG, "Failed to send join confirmation. Receiver username not found.")
+        requireActivity().runOnUiThread {
+            val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val username = sharedPreferences.getString("username", null)
+            if (senderUsername != username)
+            showInvitationDialog(senderUsername)
         }
     }
 
-    private fun sendDeclineConfirmationToWebSocket(senderUsername: String) {
-        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val receiverUsername = sharedPreferences.getString("username", null) ?: ""
-        if (receiverUsername.isNotEmpty()) {
-            WebSocketClient.sendDeclineConfirmation(senderUsername, receiverUsername)
-        } else {
-            Log.e(TAG, "Failed to send decline confirmation. Receiver username not found.")
-        }
-    }
 
     private fun showInvitationDialog(senderUsername: String) {
+        Log.d(TAG, "Showing invitation dialog for $senderUsername")
         val alertDialogBuilder = AlertDialog.Builder(requireContext())
         alertDialogBuilder.setTitle("Invitation Received")
         alertDialogBuilder.setMessage("You received an invitation from $senderUsername. Do you want to join?")
@@ -348,6 +336,30 @@ class FriendFragment : Fragment(), InvitationListener {
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
+
+
+    private fun sendJoinConfirmationToWebSocket(senderUsername: String) {
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val receiverUsername = sharedPreferences.getString("username", null) ?: ""
+        if (receiverUsername.isNotEmpty()) {
+            WebSocketClient.sendJoinConfirmation(senderUsername, receiverUsername)
+            Log.d(TAG, "Join confirmation sent to $senderUsername")
+        } else {
+            Log.e(TAG, "Failed to send join confirmation. Receiver username not found.")
+        }
+    }
+
+    private fun sendDeclineConfirmationToWebSocket(senderUsername: String) {
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val receiverUsername = sharedPreferences.getString("username", null) ?: ""
+        if (receiverUsername.isNotEmpty()) {
+            WebSocketClient.sendDeclineConfirmation(senderUsername, receiverUsername)
+            Log.d(TAG, "Decline confirmation sent to $senderUsername")
+        } else {
+            Log.e(TAG, "Failed to send decline confirmation. Receiver username not found.")
+        }
+    }
+
 
     companion object {
         private const val TAG = "FriendFragment"

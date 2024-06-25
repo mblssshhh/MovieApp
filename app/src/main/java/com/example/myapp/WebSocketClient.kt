@@ -1,11 +1,12 @@
 package com.example.myapp
 
+import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 
-class WebSocketClient private constructor() {
+class WebSocketClient public constructor() {
 
     private var webSocket: WebSocket? = null
     private var invitationListener: InvitationListener? = null
@@ -22,13 +23,8 @@ class WebSocketClient private constructor() {
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Log.d(TAG, "WebSocket Opened")
-                val connectMessage = """
-                    CONNECT
-                    accept-version:1.1,1.0
-                    heart-beat:10000,10000
-
-                    \u0000
-                """.trimIndent()
+                val connectMessage =
+                    "CONNECT\naccept-version:1.1,1.0\nheart-beat:10000,10000\n\n\u0000"
                 webSocket.send(connectMessage)
 
                 subscribeToTopic("/topic/invitations")
@@ -51,15 +47,16 @@ class WebSocketClient private constructor() {
     }
 
     private fun subscribeToTopic(topic: String) {
-        val subscriptionMessage = """
-            SUBSCRIBE
-            id:sub-${System.currentTimeMillis()}
-            destination:$topic
-
-            \u0000
-        """.trimIndent()
+        val subscriptionMessage =
+            "SUBSCRIBE\nid:sub-${System.currentTimeMillis()}\ndestination:$topic\n\n\u0000"
+        Log.d(TAG, "Sending subscription message: $subscriptionMessage")
         webSocket?.send(subscriptionMessage)
         Log.d(TAG, "Subscribed to topic: $topic")
+    }
+
+    fun registerInvitationListener(listener: InvitationListener) {
+        invitationListener = listener
+        Log.d(TAG, "InvitationListener registered: $listener")
     }
 
     private fun processWebSocketMessage(text: String) {
@@ -70,13 +67,22 @@ class WebSocketClient private constructor() {
             if (stompCommand == "MESSAGE") {
                 val body = text.substringAfter("\n\n").substringBefore("\u0000")
                 val invitationMessage = gson.fromJson(body, InvitationMessage::class.java)
-                Log.d(TAG, "Invitation received from ${invitationMessage.sender} to ${invitationMessage.receiver}")
-                invitationListener?.onInvitationReceived(invitationMessage.sender)
+                Log.d(
+                    TAG,
+                    "Invitation received from ${invitationMessage.sender} to ${invitationMessage.receiver}"
+                )
+                if (text.contains("/topic/invitations")) {
+                    Log.d(TAG, "Received invitation from ${invitationMessage.sender} to ${invitationMessage.receiver}")
+                    invitationListener?.onInvitationReceived(invitationMessage.sender)
+                } else if (text.contains("/topic/declinedInvitations")) {
+                    Log.d(TAG, "Received declined invitation from ${invitationMessage.sender} to ${invitationMessage.receiver}")
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to parse message: ${e.message}")
         }
     }
+
 
     fun setInvitationListener(listener: InvitationListener) {
         invitationListener = listener
@@ -104,12 +110,14 @@ class WebSocketClient private constructor() {
             val gson = Gson()
             val jsonMessage = gson.toJson(message)
 
-            val stompMessage = "SEND\ndestination:/app/invitation\ncontent-type:application/json\ncontent-length:${jsonMessage.length}\n\n$jsonMessage\u0000"
+            val stompMessage =
+                "SEND\ndestination:/app/invitation\ncontent-type:application/json\ncontent-length:${jsonMessage.length}\n\n$jsonMessage\u0000"
 
             Log.d(TAG, "Sending invitation message: $stompMessage")
 
             try {
-                getInstance().webSocket?.send(stompMessage)
+                val result = getInstance().webSocket?.send(stompMessage)
+                Log.d(TAG, "Invitation message send result: $result")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to send invitation message: ${e.message}")
             }
@@ -119,30 +127,22 @@ class WebSocketClient private constructor() {
             val confirmationMessage = SessionMessage(sender, receiver)
             val gson = Gson()
             val jsonMessage = gson.toJson(confirmationMessage)
-            val stompMessage = """
-                SEND
-                destination:/app/joinConfirmation
-                content-type:application/json
-                content-length:${jsonMessage.length}
-
-                $jsonMessage\u0000""".trimIndent()
+            val stompMessage =
+                "SEND\ndestination:/app/joinConfirmation\ncontent-type:application/json\ncontent-length:${jsonMessage.length}\n\n$jsonMessage\u0000"
             Log.d(TAG, "Sending join confirmation message: $stompMessage")
-            getInstance().webSocket?.send(stompMessage)
+            val result = getInstance().webSocket?.send(stompMessage)
+            Log.d(TAG, "Join confirmation message send result: $result")
         }
 
         fun sendDeclineConfirmation(sender: String, receiver: String) {
             val confirmationMessage = SessionMessage(sender, receiver)
             val gson = Gson()
             val jsonMessage = gson.toJson(confirmationMessage)
-            val stompMessage = """
-                SEND
-                destination:/app/declineConfirmation
-                content-type:application/json
-                content-length:${jsonMessage.length}
-
-                $jsonMessage\u0000""".trimIndent()
+            val stompMessage =
+                "SEND\ndestination:/app/declineConfirmation\ncontent-type:application/json\ncontent-length:${jsonMessage.length}\n\n$jsonMessage\u0000"
             Log.d(TAG, "Sending decline confirmation message: $stompMessage")
-            getInstance().webSocket?.send(stompMessage)
+            val result = getInstance().webSocket?.send(stompMessage)
+            Log.d(TAG, "Decline confirmation message send result: $result")
         }
     }
 }

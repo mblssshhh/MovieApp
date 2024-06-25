@@ -37,9 +37,6 @@ class MainActivity : AppCompatActivity() {
         val allPrefs = sharedPref.all
         Log.d("SharedPreferences", "All preferences: $allPrefs")
 
-        // Uncomment this line to clear SharedPreferences for debugging
-        // clearSharedPreferences()
-
         if (isUserAuthenticated()) {
             navigateToMainPage()
         }

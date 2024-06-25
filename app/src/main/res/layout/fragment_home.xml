@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="match_parent"
+        android:layout_height="900dp"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/image_3" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="274dp"
+        android:layout_height="101dp"
+        android:layout_marginHorizontal="60dp"
+        android:layout_marginBottom="170dp"
+        android:layout_gravity="center"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/image_2" />
+
+    <Button
+        android:id="@+id/startSessionButton"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="470dp"
+        android:background="@drawable/button_rounded"
+        android:paddingVertical="16dp"
+        android:text="Start session"
+        android:textColor="#000000"
+        android:textSize="19sp" />
+</FrameLayout>

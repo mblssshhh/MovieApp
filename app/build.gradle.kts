@@ -67,6 +67,7 @@ dependencies {
     implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation(libs.swiperefreshlayout)
     implementation("org.java-websocket:Java-WebSocket:1.5.2")
+    implementation(libs.glide)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

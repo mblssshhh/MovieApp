@@ -1,8 +1,7 @@
-package com.example.myapp
-
-import android.content.Context
 import android.util.Log
+import com.example.myapp.models.Movie
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import okhttp3.*
 import java.util.concurrent.TimeUnit
 
@@ -29,6 +28,8 @@ class WebSocketClient public constructor() {
 
                 subscribeToTopic("/topic/invitations")
                 subscribeToTopic("/topic/sessions")
+                subscribeToTopic("/topic/startSession")
+                subscribeToTopic("/topic/getRandomMovies")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -67,6 +68,7 @@ class WebSocketClient public constructor() {
             if (stompCommand == "MESSAGE") {
                 val body = text.substringAfter("\n\n").substringBefore("\u0000")
                 val invitationMessage = gson.fromJson(body, InvitationMessage::class.java)
+                val sessionMessage = gson.fromJson(body, SessionMessage::class.java)
                 Log.d(
                     TAG,
                     "Invitation received from ${invitationMessage.sender} to ${invitationMessage.receiver}"
@@ -76,13 +78,21 @@ class WebSocketClient public constructor() {
                     invitationListener?.onInvitationReceived(invitationMessage.sender)
                 } else if (text.contains("/topic/declinedInvitations")) {
                     Log.d(TAG, "Received declined invitation from ${invitationMessage.sender} to ${invitationMessage.receiver}")
+                } else if (text.contains("/topic/session")) {
+                    Log.d(TAG, "Join session message from ${invitationMessage.sender} to ${invitationMessage.receiver}")
+                    invitationListener?.onSessionCreate(invitationMessage.sender, invitationMessage.receiver)
+                } else if (text.contains("/topic/startSession")) {
+                    Log.d(TAG, "Start session message from ${sessionMessage.sender} to ${sessionMessage.receiver}")
+                    invitationListener?.onSessionStart(sessionMessage.sender, sessionMessage.receiver)
+                } else if (text.contains("/topic/getRandomMovies")) {
+                    val movie = gson.fromJson(body, Movie::class.java)
+                    Log.d(TAG, "Received random movie: $movie")
                 }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to parse message: ${e.message}")
         }
     }
-
 
     fun setInvitationListener(listener: InvitationListener) {
         invitationListener = listener
@@ -144,12 +154,38 @@ class WebSocketClient public constructor() {
             val result = getInstance().webSocket?.send(stompMessage)
             Log.d(TAG, "Decline confirmation message send result: $result")
         }
+
+        fun sendStartSession(sender: String, receiver: String) {
+            val sessionMessage = SessionMessage(sender, receiver)
+            val gson = Gson()
+            val jsonMessage = gson.toJson(sessionMessage)
+            val stompMessage =
+                "SEND\ndestination:/app/startSession\ncontent-type:application/json\ncontent-length:${jsonMessage.length}\n\n$jsonMessage\u0000"
+            Log.d(TAG, "Sending start session message: $stompMessage")
+            val result = getInstance().webSocket?.send(stompMessage)
+            Log.d(TAG, "Start session message send result: $result")
+        }
+
+        fun getRandomMoviesRequest() {
+            val stompMessage =
+                "SEND\ndestination:/app/getRandomMovies\ncontent-type:text/plain\n\n\u0000"
+            Log.d(TAG, "Sending get random movies request: $stompMessage")
+            try {
+                val result = getInstance().webSocket?.send(stompMessage)
+                Log.d(TAG, "Get random movies request send result: $result")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send get random movies request: ${e.message}")
+            }
+        }
     }
 }
 
 data class InvitationMessage(val sender: String, val receiver: String)
 data class SessionMessage(val sender: String, val receiver: String)
 
+
 interface InvitationListener {
     fun onInvitationReceived(senderUsername: String)
+    fun onSessionCreate(senderUsername: String, receiverUsername: String)
+    fun onSessionStart(senderUsername: String, receiverUsername: String)
 }

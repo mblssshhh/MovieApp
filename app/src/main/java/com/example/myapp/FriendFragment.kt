@@ -1,6 +1,9 @@
 package com.example.myapp
 
+import InvitationListener
+import WebSocketClient
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -360,6 +363,13 @@ class FriendFragment : Fragment(), InvitationListener {
         }
     }
 
+
+    override fun onSessionCreate(senderUsername: String, receiverUsername: String) {
+
+    }
+    override fun onSessionStart(senderUsername: String, receiverUsername: String) {
+
+    }
 
     companion object {
         private const val TAG = "FriendFragment"

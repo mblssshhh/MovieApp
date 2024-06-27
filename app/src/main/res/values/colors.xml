@@ -9,4 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="bar">#DFDFDF</color>
     <color name="hint">#8A8A8A</color>
+    <color name="swipe_left_color">#751200</color>
+    <color name="swipe_right_color">#6BB66B</color>
 </resources>

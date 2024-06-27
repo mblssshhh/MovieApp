@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -52,7 +53,14 @@ class MainPageActivity : AppCompatActivity() {
                 }
                 R.id.settings -> {
                     Log.d("MainPageActivity", "Selected Settings item")
-                    viewPager.currentItem = 3
+                    AlertDialog.Builder(this)
+                        .setTitle("Exit from 2Movie")
+                        .setMessage("Are you sure?")
+                        .setPositiveButton("Yes") { dialog, which ->
+                            finish()
+                        }
+                        .setNegativeButton("No", null)
+                        .show()
                 }
             }
             true
@@ -71,14 +79,13 @@ class MainPageActivity : AppCompatActivity() {
 }
 
 class ViewPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
-    override fun getItemCount(): Int = 4
+    override fun getItemCount(): Int = 3
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> HomeFragment()
             1 -> FriendFragment()
             2 -> HistoryFragment()
-            3 -> SettingsFragment()
             else -> HomeFragment()
         }
     }

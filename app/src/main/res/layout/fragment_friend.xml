@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
-
     <TextView
         android:id="@+id/friends_title"
         android:layout_width="wrap_content"
@@ -54,45 +53,52 @@
         android:layout_below="@id/search_bar_container"
         android:layout_marginTop="20dp">
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/friend_list_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#000000"
-                android:padding="10dp"
-                android:text="Friend list"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp" />
+            android:layout_height="match_parent">
 
             <LinearLayout
-                android:id="@+id/friend_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <TextView
-                android:id="@+id/friend_requests_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="#000000"
-                android:padding="10dp"
-                android:text="Friend requests"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp" />
+                <TextView
+                    android:id="@+id/friend_list_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#000000"
+                    android:padding="10dp"
+                    android:text="Friend list"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp" />
 
-            <LinearLayout
-                android:id="@+id/friend_requests"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/friend_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/friend_requests_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:background="#000000"
+                    android:padding="10dp"
+                    android:text="Friend requests"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp" />
+
+                <LinearLayout
+                    android:id="@+id/friend_requests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+        </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </RelativeLayout>
